@@ -1,6 +1,9 @@
 # piecewise
 Piecewise debloating toolchain
 
+### Download piece-wise image
+Piece-wise docker image can be found [here](https://goo.gl/u1USPn)
+
 ### How to use
 + Install [Docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce)
 + Load piece-wise docker image
