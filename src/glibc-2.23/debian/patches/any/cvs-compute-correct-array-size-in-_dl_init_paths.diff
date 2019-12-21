@@ -1,0 +1,51 @@
+From 8a0b17e48b83e933960dfeb8fa08b259f03f310e Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Thu, 14 Dec 2017 15:18:38 +0100
+Subject: [PATCH] elf: Compute correct array size in _dl_init_paths [BZ #22606]
+
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -103,7 +103,9 @@
+ static size_t max_capstrlen attribute_relro;
+ 
+ 
+-/* Get the generated information about the trusted directories.  */
++/* Get the generated information about the trusted directories.  Use
++   an array of concatenated strings to avoid relocations.  See
++   gen-trusted-dirs.awk.  */
+ #include "trusted-dirs.h"
+ 
+ static const char system_dirs[] = SYSTEM_DIRS;
+@@ -111,9 +113,18 @@
+ {
+   SYSTEM_DIRS_LEN
+ };
+-#define nsystem_dirs_len \
+-  (sizeof (system_dirs_len) / sizeof (system_dirs_len[0]))
+ 
++/* array_length (VAR) is the number of elements in the array VAR.  VAR
++   must evaluate to an array, not a pointer. A private copy of this
++   macro is here as it was introduced in 2.27  */
++#define array_length(var)                                               \
++  __extension__ ({                                                      \
++    _Static_assert (!__builtin_types_compatible_p                       \
++                    (__typeof (var), __typeof (&(var)[0])),             \
++                    "argument must be an array");                       \
++    sizeof (var) / sizeof ((var)[0]);                                   \
++  })
++#define nsystem_dirs_len array_length (system_dirs_len)
+ 
+ static bool
+ is_trusted_path (const char *path, size_t len)
+@@ -688,9 +699,8 @@
+ 		 + ncapstr * sizeof (enum r_dir_status))
+ 		/ sizeof (struct r_search_path_elem));
+ 
+-  rtld_search_dirs.dirs[0] = (struct r_search_path_elem *)
+-    malloc ((sizeof (system_dirs) / sizeof (system_dirs[0]))
+-	    * round_size * sizeof (struct r_search_path_elem));
++  rtld_search_dirs.dirs[0] = malloc (nsystem_dirs_len * round_size
++				     * sizeof (*rtld_search_dirs.dirs[0]));
+   if (rtld_search_dirs.dirs[0] == NULL)
+     {
+       errstring = N_("cannot create cache for search path");

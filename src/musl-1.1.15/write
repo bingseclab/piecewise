@@ -1,0 +1,596 @@
+arch/powerpc64/crt_arch.h:"	lwz    4, 1f-" START "(12)\n"
+Binary file build/lib/libc.so matches
+Binary file build/lib/libc.a matches
+Binary file build/obj/src/ctype/iswctype.lo matches
+Binary file build/obj/src/regex/regcomp.o matches
+Binary file build/obj/src/regex/regcomp.lo matches
+Binary file build/obj/src/math/x86_64/expl.lo matches
+Binary file build/obj/src/math/x86_64/expl.o matches
+Binary file build/obj/src/math/exp2.lo matches
+Binary file build/obj/src/math/erfl.o matches
+Binary file build/obj/src/math/exp2.o matches
+Binary file build/obj/src/math/__rem_pio2_large.o matches
+Binary file build/obj/src/math/fmaxf.lo matches
+Binary file build/obj/src/math/fminf.lo matches
+Binary file build/obj/src/multibyte/mbsrtowcs.o matches
+Binary file build/obj/src/thread/pthread_cancel.o matches
+Binary file build/obj/src/passwd/getgr_a.o matches
+Binary file build/obj/src/passwd/getgr_a.lo matches
+Binary file build/obj/src/malloc/lite_malloc.o matches
+Binary file build/obj/src/prng/random.o matches
+Binary file build/obj/src/network/netlink.lo matches
+Binary file build/obj/src/network/netlink.o matches
+Binary file build/obj/src/complex/csinh.o matches
+Binary file build/obj/src/locale/iconv.lo matches
+Binary file build/obj/src/locale/iconv.o matches
+Binary file build/obj/ldso/dynlink.lo matches
+configure:# Get the source dir for out-of-tree builds
+configure:# generating self-referential versions of memcpy,, memmove, memcmp,
+INSTALL:To configure autoconf-based program to compile and link against musl,
+ldso/dynlink.c:				+ (eh->e_phoff-ph->p_offset));
+ldso/dynlink.c:	if (v[0]<=(size_t)self->dtv[0]) {
+ldso/dynlink.c:		return (char *)self->dtv[v[0]]+v[1]+DTP_OFFSET;
+ldso/dynlink.c:	if (v[0] > (size_t)self->dtv[0]) {
+ldso/dynlink.c:		memcpy(newdtv, self->dtv,
+ldso/dynlink.c:			((size_t)self->dtv[0]+1) * sizeof(void *));
+ldso/dynlink.c:		self->dtv = self->dtv_copy = newdtv;
+ldso/dynlink.c:		if (!p->tls_id || self->dtv[p->tls_id]) continue;
+ldso/dynlink.c:		self->dtv[p->tls_id] = mem;
+src/aio/aio.c:		q->ref--;
+src/aio/aio.c:		q->ref--;
+src/ctype/iswprint.c:	if (wc-0xfffcU > 0x10ffff-0xfffc || (wc&0xfffe)==0xfffe)
+src/ctype/towctrans.c:	 || (unsigned)wc - 0x0600 <= 0x0fff-0x0600
+src/ctype/towctrans.c:	 || (unsigned)wc - 0x2e00 <= 0xa63f-0x2e00
+src/ctype/towctrans.c:	 || (unsigned)wc - 0xa800 <= 0xfeff-0xa800)
+src/string/arm/memcpy_le.S:	 * a ldr[b|h] and str[b|h] because byte and half-word instructions
+src/string/strstr.c:	/* Initialize incremental end-of-haystack pointer */
+src/string/strstr.c:		/* Update incremental end-of-haystack pointer */
+src/string/wcsstr.c:	/* Initialize incremental end-of-haystack pointer */
+src/string/wcsstr.c:		/* Update incremental end-of-haystack pointer */
+src/math/roundf.c:	if (e < 0x7f-1) {
+src/math/log.c: *                          = k*ln2_hi+(f-(hfsq-(s*(hfsq+R)+k*ln2_lo)))
+src/math/tgamma.c:	if (ix < (0x3ff-54)<<20)
+src/math/hypotf.c:	} else if (uy.i < (0x7f-60)<<23) {
+src/math/ceil.c:	if (e <= 0x3ff-1) {
+src/math/fmaf.c:		if (e < 0x3ff-126 && e >= 0x3ff-149 && fetestexcept(FE_INEXACT)) {
+src/math/x32/exp2l.s:4:	cmp $0x3fff-64,%ax
+src/math/x32/expl.s:		# check if (exponent|0x8000) is in [0xbfff-32, 0xbfff+13]
+src/math/log2.c:	 * f-hfsq must (for args near 1) be evaluated in extra precision
+src/math/log2.c:	 * This is fairly efficient since f-hfsq only depends on f, so can
+src/math/log2.c:	 * theorem for spitting f-hfsq as hi+lo, unless double_t was used
+src/math/x86_64/exp2l.s:4:	cmp $0x3fff-64,%ax
+src/math/x86_64/expl.s:		# check if (exponent|0x8000) is in [0xbfff-32, 0xbfff+13]
+src/math/i386/exp.s:4:	cmp $0x3fff-64,%ax
+src/math/i386/expl.s:		# check if (exponent|0x8000) is in [0xbfff-32, 0xbfff+13]
+src/math/sinhl.c:			if (ex < 0x3fff-32)
+src/math/round.c:	if (e < 0x3ff-1) {
+src/math/floor.c:	if (e <= 0x3ff-1) {
+src/math/log1pf.c:			c = k >= 2 ? 1-(u.f-x) : x-(u.f-1);
+src/math/__rem_pio2l.c:	n = __rem_pio2_large(tx, ty, ex-0x3fff-23, i+1, NY);
+src/math/hypot.c:	} else if (ey < 0x3ff-450) {
+src/math/roundl.c:	if (e < 0x3fff-1) {
+src/math/truncl.c:	if (e <= 0x3fff-1) {
+src/math/ceill.c:	if (e <= 0x3fff-1) {
+src/math/fma.c:		if (getexp(z) < 0x3fff-1022 && fetestexcept(FE_INEXACT))
+src/math/coshl.c:	if (ex < 0x3fff-1 || (ex == 0x3fff-1 && w < 0xb17217f7)) {
+src/math/coshl.c:		if (ex < 0x3fff-32) {
+src/math/lgamma_r.c:	if (ix < (0x3ff-70)<<20) {  /* |x|<2**-70, return -log(|x|) */
+src/math/expm1f.c:	u.i = (0x7f-k)<<23;  /* 2^-k */
+src/math/hypotl.c:	} else if (ey < 0x3fff-8000) {
+src/math/floorl.c:	if (e <= 0x3fff-1) {
+src/math/log1p.c:			c = k >= 2 ? 1-(u.f-x) : x-(u.f-1);
+src/time/timer_create.c:	self->cancel = 0;
+src/time/timer_create.c:	self->cancelbuf = 0;
+src/time/timer_create.c:	self->canceldisable = 0;
+src/time/timer_create.c:	self->cancelasync = 0;
+src/time/timer_create.c:	self->unblock_cancel = 0;
+src/time/timer_create.c:	void (*notify)(union sigval) = (void (*)(union sigval))self->start;
+src/time/timer_create.c:	union sigval val = { .sival_ptr = self->start_arg };
+src/time/timer_create.c:	self->start = (void *(*)(void *))args->sev->sigev_notify_function;
+src/time/timer_create.c:	self->start_arg = args->sev->sigev_value.sival_ptr;
+src/time/timer_create.c:	if ((id = self->timer_id) >= 0) {
+src/time/timer_create.c:		__wait(&self->timer_id, 0, id, 1);
+src/thread/pthread_getspecific.c:	return self->tsd[k];
+src/thread/pthread_key_create.c:	if (!self->tsd) self->tsd = __pthread_tsd_main;
+src/thread/pthread_key_create.c:	int i, j, not_finished = self->tsd_used;
+src/thread/pthread_key_create.c:			if (self->tsd[i] && keys[i]) {
+src/thread/pthread_key_create.c:				void *tmp = self->tsd[i];
+src/thread/pthread_key_create.c:				self->tsd[i] = 0;
+src/thread/pthread_create.c:	self->canceldisable = 1;
+src/thread/pthread_create.c:	self->cancelasync = 0;
+src/thread/pthread_create.c:	self->result = result;
+src/thread/pthread_create.c:	while (self->cancelbuf) {
+src/thread/pthread_create.c:		void (*f)(void *) = self->cancelbuf->__f;
+src/thread/pthread_create.c:		void *x = self->cancelbuf->__x;
+src/thread/pthread_create.c:		self->cancelbuf = self->cancelbuf->__next;
+src/thread/pthread_create.c:	__lock(self->exitlock);
+src/thread/pthread_create.c:	__lock(self->killlock);
+src/thread/pthread_create.c:	self->dead = 1;
+src/thread/pthread_create.c:	__unlock(self->killlock);
+src/thread/pthread_create.c:	while ((rp=self->robust_list.head) && rp != &self->robust_list.head) {
+src/thread/pthread_create.c:		self->robust_list.pending = rp;
+src/thread/pthread_create.c:		self->robust_list.head = *rp;
+src/thread/pthread_create.c:		self->robust_list.pending = 0;
+src/thread/pthread_create.c:	if (self->detached && self->map_base) {
+src/thread/pthread_create.c:		if (self->detached == 2) __syscall(SYS_set_tid_address, 0);
+src/thread/pthread_create.c:		if (self->robust_list.off)
+src/thread/pthread_create.c:		__unmapself(self->map_base, self->map_size);
+src/thread/pthread_create.c:	cb->__next = self->cancelbuf;
+src/thread/pthread_create.c:	self->cancelbuf = cb;
+src/thread/pthread_create.c:	if (self->startlock[0]) {
+src/thread/pthread_create.c:		__wait(self->startlock, 0, 1, 1);
+src/thread/pthread_create.c:		if (self->startlock[0]) {
+src/thread/pthread_create.c:			self->detached = 2;
+src/thread/pthread_create.c:		__restore_sigs(self->sigmask);
+src/thread/pthread_create.c:	if (self->unblock_cancel)
+src/thread/pthread_create.c:	__pthread_exit(self->start(self->start_arg));
+src/thread/pthread_create.c:	int (*start)(void*) = (int(*)(void*)) self->start;
+src/thread/pthread_create.c:	__pthread_exit((void *)(uintptr_t)start(self->start_arg));
+src/thread/pthread_create.c:	if (f && f->lock<0) f->lock = 0;
+src/thread/pthread_create.c:		for (FILE *f=*__ofl_lock(); f; f=f->next)
+src/thread/pthread_create.c:		self->tsd = (void **)__pthread_tsd_main;
+src/thread/pthread_create.c:	new->unblock_cancel = self->cancel;
+src/thread/pthread_create.c:	new->CANARY = self->CANARY;
+src/thread/pthread_mutex_trylock.c:	int tid = self->tid;
+src/thread/pthread_mutex_trylock.c:		if (!self->robust_list.off) {
+src/thread/pthread_mutex_trylock.c:			self->robust_list.off = (char*)&m->_m_lock-(char *)&m->_m_next;
+src/thread/pthread_mutex_trylock.c:			__syscall(SYS_set_robust_list, &self->robust_list, 3*sizeof(long));
+src/thread/pthread_mutex_trylock.c:		self->robust_list.pending = &m->_m_next;
+src/thread/pthread_mutex_trylock.c:		self->robust_list.pending = 0;
+src/thread/pthread_mutex_trylock.c:	volatile void *next = self->robust_list.head;
+src/thread/pthread_mutex_trylock.c:	m->_m_prev = &self->robust_list.head;
+src/thread/pthread_mutex_trylock.c:	if (next != &self->robust_list.head) *(volatile void *volatile *)
+src/thread/pthread_mutex_trylock.c:	self->robust_list.head = &m->_m_next;
+src/thread/pthread_mutex_trylock.c:	self->robust_list.pending = 0;
+src/thread/pthread_cancel.c:	if (self->canceldisable == PTHREAD_CANCEL_ENABLE || self->cancelasync)
+src/thread/pthread_cancel.c:	self->canceldisable = PTHREAD_CANCEL_DISABLE;
+src/thread/pthread_cancel.c:	r = __syscall_cp_asm(&self->cancel, nr, u, v, w, x, y, z);
+src/thread/pthread_cancel.c:	if (r==-EINTR && nr!=SYS_close && self->cancel &&
+src/thread/pthread_cancel.c:	    self->canceldisable != PTHREAD_CANCEL_DISABLE)
+src/thread/pthread_cancel.c:	if (!self->cancel || self->canceldisable == PTHREAD_CANCEL_DISABLE) return;
+src/thread/pthread_cancel.c:	if (self->cancelasync || pc >= (uintptr_t)__cp_begin && pc < (uintptr_t)__cp_end) {
+src/thread/pthread_cancel.c:	__syscall(SYS_tkill, self->tid, SIGCANCEL);
+src/thread/pthread_cancel.c:	if (self->cancel && !self->canceldisable)
+src/thread/sh/atomics.s:	mov #(0f-1f),r15
+src/thread/i386/__set_thread_area.s:1:	addl $4f-1b,(%esp)
+src/thread/pthread_setspecific.c:	if (self->tsd[k] != x) {
+src/thread/pthread_setspecific.c:		self->tsd[k] = (void *)x;
+src/thread/pthread_setspecific.c:		self->tsd_used = 1;
+src/thread/pthread_barrier_wait.c:	/* Perform a recursive unlock suitable for self-sync'd destruction */
+src/thread/pthread_mutex_unlock.c:		if ((m->_m_lock&0x7fffffff) != self->tid)
+src/thread/pthread_mutex_unlock.c:			self->robust_list.pending = &m->_m_next;
+src/thread/pthread_mutex_unlock.c:		if (next != &self->robust_list.head) *(volatile void *volatile *)
+src/thread/pthread_mutex_unlock.c:		self->robust_list.pending = 0;
+src/thread/__tls_get_addr.c:	if (v[0]<=(size_t)self->dtv[0])
+src/thread/__tls_get_addr.c:		return (char *)self->dtv[v[0]]+v[1]+DTP_OFFSET;
+src/thread/pthread_cond_timedwait.c:/* Self-synchronized-destruction-safe lock functions */
+src/thread/powerpc/syscall_cp.s:	# at enter: r3 = pointer to self->cancel, r4: syscall no, r5: first arg, r6: 2nd, r7: 3rd, r8: 4th, r9: 5th, r10: 6th
+src/thread/powerpc/syscall_cp.s:	# r3 holds first argument, its a pointer to self->cancel. 
+src/thread/aarch64/syscall_cp.s:// __syscall_cp_asm(&self->cancel, nr, u, v, w, x, y, z)
+src/thread/powerpc64/syscall_cp.s:	# at enter: r3 = pointer to self->cancel, r4: syscall no, r5: first arg, r6: 2nd, r7: 3rd, r8: 4th, r9: 5th, r10: 6th
+src/thread/powerpc64/syscall_cp.s:	# if (self->cancel) goto __cp_cancel
+src/thread/pthread_setcanceltype.c:	if (old) *old = self->cancelasync;
+src/thread/pthread_setcanceltype.c:	self->cancelasync = new;
+src/thread/pthread_setcancelstate.c:	if (old) *old = self->canceldisable;
+src/thread/pthread_setcancelstate.c:	self->canceldisable = new;
+src/thread/tss_set.c:	if (self->tsd[k] != x) {
+src/thread/tss_set.c:		self->tsd[k] = x;
+src/thread/tss_set.c:		self->tsd_used = 1;
+src/env/__reset_tls.c:	size_t i, n = (size_t)self->dtv[0];
+src/env/__reset_tls.c:		if (!self->dtv[i]) continue;
+src/env/__reset_tls.c:		memcpy(self->dtv[i], p->image, p->len);
+src/env/__reset_tls.c:		memset((char *)self->dtv[i]+p->len, 0,
+src/stdio/fclose.c:	if (!(perm = f->flags & F_PERM)) {
+src/stdio/fclose.c:		if (f->prev) f->prev->next = f->next;
+src/stdio/fclose.c:		if (f->next) f->next->prev = f->prev;
+src/stdio/fclose.c:		if (*head == f) *head = f->next;
+src/stdio/fclose.c:	r |= f->close(f);
+src/stdio/fclose.c:	if (f->getln_buf) free(f->getln_buf);
+src/stdio/fmemopen.c:	struct cookie *c = f->cookie;
+src/stdio/fmemopen.c:	struct cookie *c = f->cookie;
+src/stdio/fmemopen.c:		f->flags |= F_EOF;
+src/stdio/fmemopen.c:	if (rem > f->buf_size) rem = f->buf_size;
+src/stdio/fmemopen.c:	f->rpos = f->buf;
+src/stdio/fmemopen.c:	f->rend = f->buf + rem;
+src/stdio/fmemopen.c:	memcpy(f->rpos, c->buf+c->pos, rem);
+src/stdio/fmemopen.c:	struct cookie *c = f->cookie;
+src/stdio/fmemopen.c:	size_t len2 = f->wpos - f->wbase;
+src/stdio/fmemopen.c:		f->wpos = f->wbase;
+src/stdio/fmemopen.c:		if (mwrite(f, f->wpos, len2) < len2) return 0;
+src/stdio/fmemopen.c:		else if ((f->flags&F_NORD) && c->size) c->buf[c->size-1] = 0;
+src/stdio/fmemopen.c:	f->cookie = c = (void *)(f+1);
+src/stdio/fmemopen.c:	f->fd = -1;
+src/stdio/fmemopen.c:	f->lbf = EOF;
+src/stdio/fmemopen.c:	f->buf = (unsigned char *)(c+1) + UNGET;
+src/stdio/fmemopen.c:	f->buf_size = BUFSIZ;
+src/stdio/fmemopen.c:	if (!buf) buf = f->buf + BUFSIZ;
+src/stdio/fmemopen.c:	if (!plus) f->flags = (*mode == 'r') ? F_NOWR : F_NORD;
+src/stdio/fmemopen.c:	f->read = mread;
+src/stdio/fmemopen.c:	f->write = mwrite;
+src/stdio/fmemopen.c:	f->seek = mseek;
+src/stdio/fmemopen.c:	f->close = mclose;
+src/stdio/fmemopen.c:	if (!libc.threaded) f->lock = -1;
+src/stdio/ofl_add.c:	f->next = *head;
+src/stdio/__uflow.c:	if (!__toread(f) && f->read(f, &c, 1)==1) return c;
+src/stdio/stdout.c:	.buf_size = sizeof buf-UNGET,
+src/stdio/popen.c:				f->pipe_pid = pid;
+src/stdio/vfprintf.c:	if (!(f->flags & F_ERR)) __fwritex((void *)s, l, f);
+src/stdio/vfprintf.c:		if (p && s-buf-2 < p)
+src/stdio/vfprintf.c:			l = (p+2) + (ebuf-estr);
+src/stdio/vfprintf.c:			l = (s-buf) + (ebuf-estr);
+src/stdio/vfprintf.c:		pad(f, '0', l-(ebuf-estr)-(s-buf), 0, 0);
+src/stdio/vfprintf.c:		out(f, estr, ebuf-estr);
+src/stdio/vfprintf.c:		while(ebuf-estr<2) *--estr='0';
+src/stdio/vfprintf.c:		l += ebuf-estr;
+src/stdio/vfprintf.c:		out(f, estr, ebuf-estr);
+src/stdio/vfprintf.c:	olderr = f->flags & F_ERR;
+src/stdio/vfprintf.c:	if (f->mode < 1) f->flags &= ~F_ERR;
+src/stdio/vfprintf.c:	if (!f->buf_size) {
+src/stdio/vfprintf.c:		saved_buf = f->buf;
+src/stdio/vfprintf.c:		f->wpos = f->wbase = f->buf = internal_buf;
+src/stdio/vfprintf.c:		f->buf_size = sizeof internal_buf;
+src/stdio/vfprintf.c:		f->wend = internal_buf + sizeof internal_buf;
+src/stdio/vfprintf.c:		f->write(f, 0, 0);
+src/stdio/vfprintf.c:		if (!f->wpos) ret = -1;
+src/stdio/vfprintf.c:		f->buf = saved_buf;
+src/stdio/vfprintf.c:		f->buf_size = 0;
+src/stdio/vfprintf.c:		f->wpos = f->wbase = f->wend = 0;
+src/stdio/vfprintf.c:	if (f->flags & F_ERR) ret = -1;
+src/stdio/vfprintf.c:	f->flags |= olderr;
+src/stdio/__fclose_ca.c:	return f->close(f);
+src/stdio/__stdio_exit.c:	if (f->wpos > f->wbase) f->write(f, 0, 0);
+src/stdio/__stdio_exit.c:	if (f->rpos < f->rend) f->seek(f, f->rpos-f->rend, SEEK_CUR);
+src/stdio/__stdio_exit.c:	for (f=*__ofl_lock(); f; f=f->next) close_file(f);
+src/stdio/ext.c:	return (f->flags & F_NORD) || f->wend;
+src/stdio/ext.c:	return (f->flags & F_NOWR) || f->rend;
+src/stdio/ext.c:	return !(f->flags & F_NORD);
+src/stdio/ext.c:	return !(f->flags & F_NOWR);
+src/stdio/ext.c:	return f->lbf >= 0;
+src/stdio/ext.c:	return f->buf_size;
+src/stdio/ext.c:	return f->wend ? f->wpos - f->wbase : 0;
+src/stdio/ext.c:	f->wpos = f->wbase = f->wend = 0;
+src/stdio/ext.c:	f->rpos = f->rend = 0;
+src/stdio/ftell.c:	off_t pos = f->seek(f, 0,
+src/stdio/ftell.c:		(f->flags & F_APP) && f->wpos > f->wbase
+src/stdio/ftell.c:	return pos - (f->rend - f->rpos) + (f->wpos - f->wbase);
+src/stdio/putc.c:	if (f->lock < 0 || !__lockfile(f))
+src/stdio/__overflow.c:	if (!f->wend && __towrite(f)) return EOF;
+src/stdio/__overflow.c:	if (f->wpos < f->wend && c != f->lbf) return *f->wpos++ = c;
+src/stdio/__overflow.c:	if (f->write(f, &c, 1)!=1) return EOF;
+src/stdio/fgetln.c:	if ((z=memchr(f->rpos, '\n', f->rend - f->rpos))) {
+src/stdio/fgetln.c:		ret = (char *)f->rpos;
+src/stdio/fgetln.c:		f->rpos = (void *)z;
+src/stdio/fgetln.c:	} else if ((l = getline(&f->getln_buf, (size_t[]){0}, f)) > 0) {
+src/stdio/fgetln.c:		ret = f->getln_buf;
+src/stdio/funlockfile.c:	if (f->lockcount == 1) {
+src/stdio/funlockfile.c:		f->lockcount = 0;
+src/stdio/funlockfile.c:		f->lockcount--;
+src/stdio/fread.c:	f->mode |= f->mode-1;
+src/stdio/fread.c:	if (f->rend - f->rpos > 0) {
+src/stdio/fread.c:		k = MIN(f->rend - f->rpos, l);
+src/stdio/fread.c:		memcpy(dest, f->rpos, k);
+src/stdio/fread.c:		f->rpos += k;
+src/stdio/fread.c:		k = __toread(f) ? 0 : f->read(f, dest, l);
+src/stdio/pclose.c:	pid_t pid = f->pipe_pid;
+src/stdio/fflush.c:	if (f->wpos > f->wbase) {
+src/stdio/fflush.c:		f->write(f, 0, 0);
+src/stdio/fflush.c:		if (!f->wpos) return EOF;
+src/stdio/fflush.c:	if (f->rpos < f->rend) f->seek(f, f->rpos-f->rend, SEEK_CUR);
+src/stdio/fflush.c:	f->wpos = f->wbase = f->wend = 0;
+src/stdio/fflush.c:	f->rpos = f->rend = 0;
+src/stdio/fflush.c:	for (f=*__ofl_lock(); f; f=f->next) {
+src/stdio/fflush.c:		if (f->wpos > f->wbase) r |= __fflush_unlocked(f);
+src/stdio/__fopen_rb_ca.c:	f->fd = sys_open(filename, O_RDONLY|O_CLOEXEC);
+src/stdio/__fopen_rb_ca.c:	if (f->fd < 0) return 0;
+src/stdio/__fopen_rb_ca.c:	__syscall(SYS_fcntl, f->fd, F_SETFD, FD_CLOEXEC);
+src/stdio/__fopen_rb_ca.c:	f->flags = F_NOWR | F_PERM;
+src/stdio/__fopen_rb_ca.c:	f->buf = buf + UNGET;
+src/stdio/__fopen_rb_ca.c:	f->buf_size = len - UNGET;
+src/stdio/__fopen_rb_ca.c:	f->read = __stdio_read;
+src/stdio/__fopen_rb_ca.c:	f->seek = __stdio_seek;
+src/stdio/__fopen_rb_ca.c:	f->close = __stdio_close;
+src/stdio/__fopen_rb_ca.c:	f->lock = -1;
+src/stdio/fgetwc.c:	if (f->rpos < f->rend) {
+src/stdio/fgetwc.c:		l = mbrtowc(&wc, (void *)f->rpos, f->rend - f->rpos, &st);
+src/stdio/fgetwc.c:			f->rpos += l + !l; /* l==0 means 1 byte, null */
+src/stdio/fgetwc.c:			f->rpos++;
+src/stdio/fgetwc.c:	if (f->mode <= 0) fwide(f, 1);
+src/stdio/fgetwc.c:	*ploc = f->locale;
+src/stdio/__stdio_close.c:	return syscall(SYS_close, __aio_close(f->fd));
+src/stdio/rewind.c:	f->flags &= ~F_ERR;
+src/stdio/fputws.c:	*ploc = f->locale;
+src/stdio/fputwc.c:	if (f->mode <= 0) fwide(f, 1);
+src/stdio/fputwc.c:	*ploc = f->locale;
+src/stdio/fputwc.c:	} else if (f->wpos + MB_LEN_MAX < f->wend) {
+src/stdio/fputwc.c:		l = wctomb((void *)f->wpos, c);
+src/stdio/fputwc.c:		else f->wpos += l;
+src/stdio/fputwc.c:	if (c==WEOF) f->flags |= F_ERR;
+src/stdio/fputc.c:	if (f->lock < 0 || !__lockfile(f))
+src/stdio/setvbuf.c:	f->lbf = EOF;
+src/stdio/setvbuf.c:		f->buf_size = 0;
+src/stdio/setvbuf.c:		f->lbf = '\n';
+src/stdio/setvbuf.c:	f->flags |= F_SVB;
+src/stdio/__towrite.c:	f->mode |= f->mode-1;
+src/stdio/__towrite.c:	if (f->flags & (F_NOWR)) {
+src/stdio/__towrite.c:		f->flags |= F_ERR;
+src/stdio/__towrite.c:	f->rpos = f->rend = 0;
+src/stdio/__towrite.c:	f->wpos = f->wbase = f->buf;
+src/stdio/__towrite.c:	f->wend = f->buf + f->buf_size;
+src/stdio/__stdio_read.c:		{ .iov_base = buf, .iov_len = len - !!f->buf_size },
+src/stdio/__stdio_read.c:		{ .iov_base = f->buf, .iov_len = f->buf_size }
+src/stdio/__stdio_read.c:	cnt = syscall(SYS_readv, f->fd, iov, 2);
+src/stdio/__stdio_read.c:		f->flags |= F_EOF ^ ((F_ERR^F_EOF) & cnt);
+src/stdio/__stdio_read.c:	f->rpos = f->buf;
+src/stdio/__stdio_read.c:	f->rend = f->buf + cnt;
+src/stdio/__stdio_read.c:	if (f->buf_size) buf[len-1] = *f->rpos++;
+src/stdio/vswscanf.c:	const wchar_t *src = f->cookie;
+src/stdio/vswscanf.c:	k = wcsrtombs((void *)f->buf, &src, f->buf_size, 0);
+src/stdio/vswscanf.c:		f->rpos = f->rend = 0;
+src/stdio/vswscanf.c:	f->rpos = f->buf;
+src/stdio/vswscanf.c:	f->rend = f->buf + k;
+src/stdio/vswscanf.c:	f->cookie = (void *)src;
+src/stdio/vswscanf.c:	*buf = *f->rpos++;
+src/stdio/fgets.c:		f->mode |= f->mode-1;
+src/stdio/fgets.c:		z = memchr(f->rpos, '\n', f->rend - f->rpos);
+src/stdio/fgets.c:		k = z ? z - f->rpos + 1 : f->rend - f->rpos;
+src/stdio/fgets.c:		memcpy(p, f->rpos, k);
+src/stdio/fgets.c:		f->rpos += k;
+src/stdio/feof.c:	int ret = !!(f->flags & F_EOF);
+src/stdio/fwrite.c:	if (!f->wend && __towrite(f)) return 0;
+src/stdio/fwrite.c:	if (l > f->wend - f->wpos) return f->write(f, s, l);
+src/stdio/fwrite.c:	if (f->lbf >= 0) {
+src/stdio/fwrite.c:			size_t n = f->write(f, s, i);
+src/stdio/fwrite.c:	memcpy(f->wpos, s, l);
+src/stdio/fwrite.c:	f->wpos += l;
+src/stdio/open_wmemstream.c:	struct cookie *c = f->cookie;
+src/stdio/open_wmemstream.c:	struct cookie *c = f->cookie;
+src/stdio/open_wmemstream.c:	f->cookie = c = (void *)(f+1);
+src/stdio/open_wmemstream.c:	f->flags = F_NORD;
+src/stdio/open_wmemstream.c:	f->fd = -1;
+src/stdio/open_wmemstream.c:	f->buf = (void *)(c+1);
+src/stdio/open_wmemstream.c:	f->buf_size = 0;
+src/stdio/open_wmemstream.c:	f->lbf = EOF;
+src/stdio/open_wmemstream.c:	f->write = wms_write;
+src/stdio/open_wmemstream.c:	f->seek = wms_seek;
+src/stdio/open_wmemstream.c:	f->close = wms_close;
+src/stdio/open_wmemstream.c:	if (!libc.threaded) f->lock = -1;
+src/stdio/stdin.c:	.buf_size = sizeof buf-UNGET,
+src/stdio/__stdio_seek.c:	if (syscall(SYS__llseek, f->fd, off>>32, off, &ret, whence)<0)
+src/stdio/__stdio_seek.c:	ret = syscall(SYS_lseek, f->fd, off, whence);
+src/stdio/vfwprintf.c:	while (l-- && !(f->flags & F_ERR)) fputwc(*s++, f);
+src/stdio/vfwprintf.c:	olderr = f->flags & F_ERR;
+src/stdio/vfwprintf.c:	f->flags &= ~F_ERR;
+src/stdio/vfwprintf.c:	if (f->flags & F_ERR) ret = -1;
+src/stdio/vfwprintf.c:	f->flags |= olderr;
+src/stdio/fwide.c:		if (!f->locale) f->locale = MB_CUR_MAX==1
+src/stdio/fwide.c:		if (!f->mode) f->mode = mode>0 ? 1 : -1;
+src/stdio/fwide.c:	mode = f->mode;
+src/stdio/fgetc.c:	if (f->lock < 0 || !__lockfile(f))
+src/stdio/getdelim.c:		f->flags |= F_ERR;
+src/stdio/getdelim.c:		z = memchr(f->rpos, delim, f->rend - f->rpos);
+src/stdio/getdelim.c:		k = z ? z - f->rpos + 1 : f->rend - f->rpos;
+src/stdio/getdelim.c:		memcpy(*s+i, f->rpos, k);
+src/stdio/getdelim.c:		f->rpos += k;
+src/stdio/getdelim.c:	f->flags |= F_ERR;
+src/stdio/vsnprintf.c:	size_t k = f->wend - f->wpos;
+src/stdio/vsnprintf.c:	memcpy(f->wpos, s, k);
+src/stdio/vsnprintf.c:	f->wpos += k;
+src/stdio/__stdout_write.c:	f->write = __stdio_write;
+src/stdio/__stdout_write.c:	if (!(f->flags & F_SVB) && __syscall(SYS_ioctl, f->fd, TIOCGWINSZ, &wsz))
+src/stdio/__stdout_write.c:		f->lbf = -1;
+src/stdio/__lockfile.c:	if (f->lock == tid)
+src/stdio/__lockfile.c:	while ((owner = a_cas(&f->lock, 0, tid)))
+src/stdio/__lockfile.c:		__wait(&f->lock, &f->waiters, owner, 1);
+src/stdio/__lockfile.c:	a_store(&f->lock, 0);
+src/stdio/__lockfile.c:	 * of self-synchronized destruction. Another thread may have
+src/stdio/__lockfile.c:	if (f->waiters) __wake(&f->lock, 1, 1);
+src/stdio/__stdio_write.c:		{ .iov_base = f->wbase, .iov_len = f->wpos-f->wbase },
+src/stdio/__stdio_write.c:		cnt = syscall(SYS_writev, f->fd, iov, iovcnt);
+src/stdio/__stdio_write.c:			f->wend = f->buf + f->buf_size;
+src/stdio/__stdio_write.c:			f->wpos = f->wbase = f->buf;
+src/stdio/__stdio_write.c:			f->wpos = f->wbase = f->wend = 0;
+src/stdio/__stdio_write.c:			f->flags |= F_ERR;
+src/stdio/ungetwc.c:	if (f->mode <= 0) fwide(f, 1);
+src/stdio/ungetwc.c:	*ploc = f->locale;
+src/stdio/ungetwc.c:	if (!f->rpos) __toread(f);
+src/stdio/ungetwc.c:	if (!f->rpos || c == WEOF || (l = wcrtomb((void *)mbc, c, 0)) < 0 ||
+src/stdio/ungetwc.c:	    f->rpos < f->buf - UNGET + l) {
+src/stdio/ungetwc.c:	if (isascii(c)) *--f->rpos = c;
+src/stdio/ungetwc.c:	else memcpy(f->rpos -= l, mbc, l);
+src/stdio/ungetwc.c:	f->flags &= ~F_EOF;
+src/stdio/fileno.c:	/* f->fd never changes, but the lock must be obtained and released
+src/stdio/fileno.c:	return f->fd;
+src/stdio/open_memstream.c:	struct cookie *c = f->cookie;
+src/stdio/open_memstream.c:	struct cookie *c = f->cookie;
+src/stdio/open_memstream.c:	size_t len2 = f->wpos - f->wbase;
+src/stdio/open_memstream.c:		f->wpos = f->wbase;
+src/stdio/open_memstream.c:		if (ms_write(f, f->wbase, len2) < len2) return 0;
+src/stdio/open_memstream.c:	f->cookie = c = (void *)(f+1);
+src/stdio/open_memstream.c:	f->flags = F_NORD;
+src/stdio/open_memstream.c:	f->fd = -1;
+src/stdio/open_memstream.c:	f->buf = (void *)(c+1);
+src/stdio/open_memstream.c:	f->buf_size = BUFSIZ;
+src/stdio/open_memstream.c:	f->lbf = EOF;
+src/stdio/open_memstream.c:	f->write = ms_write;
+src/stdio/open_memstream.c:	f->seek = ms_seek;
+src/stdio/open_memstream.c:	f->close = ms_close;
+src/stdio/open_memstream.c:	if (!libc.threaded) f->lock = -1;
+src/stdio/fseek.c:	if (whence == SEEK_CUR) off -= f->rend - f->rpos;
+src/stdio/fseek.c:	if (f->wpos > f->wbase) {
+src/stdio/fseek.c:		f->write(f, 0, 0);
+src/stdio/fseek.c:		if (!f->wpos) return -1;
+src/stdio/fseek.c:	f->wpos = f->wbase = f->wend = 0;
+src/stdio/fseek.c:	if (f->seek(f, off, whence) < 0) return -1;
+src/stdio/fseek.c:	f->rpos = f->rend = 0;
+src/stdio/fseek.c:	f->flags &= ~F_EOF;
+src/stdio/freopen.c:			__syscall(SYS_fcntl, f->fd, F_SETFD, FD_CLOEXEC);
+src/stdio/freopen.c:		if (syscall(SYS_fcntl, f->fd, F_SETFL, fl) < 0)
+src/stdio/freopen.c:		if (f2->fd == f->fd) f2->fd = -1; /* avoid closing in fclose */
+src/stdio/freopen.c:		else if (__dup3(f2->fd, f->fd, fl&O_CLOEXEC)<0) goto fail2;
+src/stdio/freopen.c:		f->flags = (f->flags & F_PERM) | f2->flags;
+src/stdio/freopen.c:		f->read = f2->read;
+src/stdio/freopen.c:		f->write = f2->write;
+src/stdio/freopen.c:		f->seek = f2->seek;
+src/stdio/freopen.c:		f->close = f2->close;
+src/stdio/vswprintf.c:	struct cookie *c = f->cookie;
+src/stdio/vswprintf.c:	if (s!=f->wbase && sw_write(f, f->wbase, f->wpos-f->wbase)==-1)
+src/stdio/ftrylockfile.c:	for (f=__pthread_self()->stdio_locks; f; f=f->next_locked)
+src/stdio/ftrylockfile.c:		a_store(&f->lock, 0x40000000);
+src/stdio/ftrylockfile.c:	if (f->lockcount) {
+src/stdio/ftrylockfile.c:		if (f->next_locked) f->next_locked->prev_locked = f->prev_locked;
+src/stdio/ftrylockfile.c:		if (f->prev_locked) f->prev_locked->next_locked = f->next_locked;
+src/stdio/ftrylockfile.c:		else __pthread_self()->stdio_locks = f->next_locked;
+src/stdio/ftrylockfile.c:	int tid = self->tid;
+src/stdio/ftrylockfile.c:	if (f->lock == tid) {
+src/stdio/ftrylockfile.c:		if (f->lockcount == LONG_MAX)
+src/stdio/ftrylockfile.c:		f->lockcount++;
+src/stdio/ftrylockfile.c:	if (f->lock < 0) f->lock = 0;
+src/stdio/ftrylockfile.c:	if (f->lock || a_cas(&f->lock, 0, tid))
+src/stdio/ftrylockfile.c:	f->lockcount = 1;
+src/stdio/ftrylockfile.c:	f->prev_locked = 0;
+src/stdio/ftrylockfile.c:	f->next_locked = self->stdio_locks;
+src/stdio/ftrylockfile.c:	if (f->next_locked) f->next_locked->prev_locked = f;
+src/stdio/ftrylockfile.c:	self->stdio_locks = f;
+src/stdio/clearerr.c:	f->flags &= ~(F_EOF|F_ERR);
+src/stdio/ungetc.c:	if (!f->rpos) __toread(f);
+src/stdio/ungetc.c:	if (!f->rpos || f->rpos <= f->buf - UNGET) {
+src/stdio/ungetc.c:	*--f->rpos = c;
+src/stdio/ungetc.c:	f->flags &= ~F_EOF;
+src/stdio/ext2.c:	return f->rend - f->rpos;
+src/stdio/ext2.c:	size_t size = f->rend - f->rpos;
+src/stdio/ext2.c:	return (const char *)f->rpos;
+src/stdio/ext2.c:	f->rpos += inc;
+src/stdio/ext2.c:	f->flags |= F_ERR;
+src/stdio/__string_read.c:	char *src = f->cookie;
+src/stdio/__string_read.c:	f->rpos = (void *)(src+len);
+src/stdio/__string_read.c:	f->rend = (void *)(src+k);
+src/stdio/__string_read.c:	f->cookie = src+k;
+src/stdio/getc.c:	if (f->lock < 0 || !__lockfile(f))
+src/stdio/ferror.c:	int ret = !!(f->flags & F_ERR);
+src/stdio/flockfile.c:		int owner = f->lock;
+src/stdio/flockfile.c:		if (owner) __wait(&f->lock, &f->waiters, owner, 1);
+src/stdio/__toread.c:	f->mode |= f->mode-1;
+src/stdio/__toread.c:	if (f->wpos > f->wbase) f->write(f, 0, 0);
+src/stdio/__toread.c:	f->wpos = f->wbase = f->wend = 0;
+src/stdio/__toread.c:	if (f->flags & F_NORD) {
+src/stdio/__toread.c:		f->flags |= F_ERR;
+src/stdio/__toread.c:	f->rpos = f->rend = f->buf + f->buf_size;
+src/stdio/__toread.c:	return (f->flags & F_EOF) ? EOF : 0;
+src/stdio/__fdopen.c:	if (!strchr(mode, '+')) f->flags = (*mode == 'r') ? F_NOWR : F_NORD;
+src/stdio/__fdopen.c:		f->flags |= F_APP;
+src/stdio/__fdopen.c:	f->fd = fd;
+src/stdio/__fdopen.c:	f->buf = (unsigned char *)f + sizeof *f + UNGET;
+src/stdio/__fdopen.c:	f->buf_size = BUFSIZ;
+src/stdio/__fdopen.c:	f->lbf = EOF;
+src/stdio/__fdopen.c:	if (!(f->flags & F_NOWR) && !__syscall(SYS_ioctl, fd, TIOCGWINSZ, &wsz))
+src/stdio/__fdopen.c:		f->lbf = '\n';
+src/stdio/__fdopen.c:	f->read = __stdio_read;
+src/stdio/__fdopen.c:	f->write = __stdio_write;
+src/stdio/__fdopen.c:	f->seek = __stdio_seek;
+src/stdio/__fdopen.c:	f->close = __stdio_close;
+src/stdio/__fdopen.c:	if (!libc.threaded) f->lock = -1;
+src/crypt/crypt_blowfish.c: * Please preserve the runtime self-test.  It serves two purposes at once:
+src/crypt/crypt_blowfish.c: * enough.  Thus, a proactive measure like this self-test is needed.
+src/crypt/crypt_blowfish.c: * would do explicit cleanups, but simply running the self-test after hash
+src/crypt/crypt_blowfish.c: * The performance cost of this quick self-test is around 0.6% at the "$2a$08"
+src/crypt/crypt_blowfish.c: * Do a quick self-test.  It is important that we make both calls to BF_crypt()
+src/crypt/crypt_blowfish.c: * detected by the self-test.
+src/crypt/crypt_des.c: * mostly UFC-crypt compatible, added a quick runtime self-test (which also
+src/crypt/crypt_des.c:	 * Perform a quick self-test.  It is important that we make both calls
+src/stdlib/wcstod.c:	const wchar_t *wcs = f->cookie;
+src/stdlib/wcstod.c:	for (i=0; i<f->buf_size && wcs[i]; i++)
+src/stdlib/wcstod.c:		f->buf[i] = wcs[i] < 128 ? wcs[i] : '@';
+src/stdlib/wcstod.c:	f->rpos = f->buf;
+src/stdlib/wcstod.c:	f->rend = f->buf + i;
+src/stdlib/wcstod.c:	f->cookie = (void *)(wcs+i);
+src/stdlib/wcstod.c:		*buf = *f->rpos++;
+src/stdlib/wcstol.c:	const wchar_t *wcs = f->cookie;
+src/stdlib/wcstol.c:	for (i=0; i<f->buf_size && wcs[i]; i++)
+src/stdlib/wcstol.c:		f->buf[i] = wcs[i] < 128 ? wcs[i] : '@';
+src/stdlib/wcstol.c:	f->rpos = f->buf;
+src/stdlib/wcstol.c:	f->rend = f->buf + i;
+src/stdlib/wcstol.c:	f->cookie = (void *)(wcs+i);
+src/stdlib/wcstol.c:		*buf = *f->rpos++;
+src/malloc/malloc.c:	 * zero-size sentinel header at the old end-of-heap. */
+src/malloc/malloc.c:	split->prev = self->prev;
+src/malloc/malloc.c:	split->next = self->next;
+src/malloc/malloc.c:	self->csize = n | C_INUSE;
+src/malloc/malloc.c:	self->csize = n | C_INUSE;
+src/malloc/malloc.c:		size_t extra = self->psize;
+src/malloc/malloc.c:		self->csize = newlen - extra;
+src/malloc/malloc.c:	if (next->psize != self->csize) a_crash();
+src/malloc/malloc.c:	self->csize = n1 | C_INUSE;
+src/malloc/malloc.c:		size_t extra = self->psize;
+src/malloc/malloc.c:	if (next->psize != self->csize) a_crash();
+src/malloc/malloc.c:		if (self->psize & next->csize & C_INUSE) {
+src/malloc/malloc.c:			self->csize = final_size | C_INUSE;
+src/malloc/malloc.c:			if (self->psize & next->csize & C_INUSE)
+src/malloc/malloc.c:	self->csize = final_size;
+src/malloc/malloc.c:	self->next = BIN_TO_CHUNK(i);
+src/malloc/malloc.c:	self->prev = mal.bins[i].tail;
+src/malloc/malloc.c:	self->next->prev = self;
+src/malloc/malloc.c:	self->prev->next = self;
+src/process/fork.c:		self->tid = __syscall(SYS_gettid);
+src/process/fork.c:		self->robust_list.off = 0;
+src/process/fork.c:		self->robust_list.pending = 0;
+src/network/res_msend.c:	timeout = 1000*conf->timeout;
+src/network/res_msend.c:	attempts = conf->attempts;
+src/network/res_msend.c:	for (nns=0; nns<conf->nns; nns++) {
+src/network/res_msend.c:		const struct address *iplit = &conf->ns[nns];
+src/network/resolvconf.c:	conf->ndots = 1;
+src/network/resolvconf.c:	conf->timeout = 5;
+src/network/resolvconf.c:	conf->attempts = 2;
+src/network/resolvconf.c:				if (z != p) conf->ndots = x > 15 ? 15 : x;
+src/network/resolvconf.c:				if (z != p) conf->attempts = x > 10 ? 10 : x;
+src/network/resolvconf.c:				if (z != p) conf->timeout = x > 60 ? 60 : x;
+src/network/resolvconf.c:			if (__lookup_ipliteral(conf->ns+nns, p, AF_UNSPEC) > 0)
+src/network/resolvconf.c:		__lookup_ipliteral(conf->ns, "127.0.0.1", AF_UNSPEC);
+src/network/resolvconf.c:	conf->nns = nns;
+src/ldso/dlerror.c:	if (!self->dlerror_flag) return 0;
+src/ldso/dlerror.c:	self->dlerror_flag = 0;
+src/ldso/dlerror.c:	char *s = self->dlerror_buf;
+src/ldso/dlerror.c:	if (self->dlerror_buf != (void *)-1)
+src/ldso/dlerror.c:		free(self->dlerror_buf);
+src/ldso/dlerror.c:	if (self->dlerror_buf != (void *)-1)
+src/ldso/dlerror.c:		free(self->dlerror_buf);
+src/ldso/dlerror.c:	self->dlerror_buf = buf;
+src/ldso/dlerror.c:	self->dlerror_flag = 1;
+src/internal/shgetc.c:	f->shlim = lim;
+src/internal/shgetc.c:	f->shcnt = f->rend - f->rpos;
+src/internal/shgetc.c:	if (lim && f->shcnt > lim)
+src/internal/shgetc.c:		f->shend = f->rpos + lim;
+src/internal/shgetc.c:		f->shend = f->rend;
+src/internal/shgetc.c:	if (f->shlim && f->shcnt >= f->shlim || (c=__uflow(f)) < 0) {
+src/internal/shgetc.c:		f->shend = 0;
+src/internal/shgetc.c:	if (f->shlim && f->rend - f->rpos > f->shlim - f->shcnt - 1)
+src/internal/shgetc.c:		f->shend = f->rpos + (f->shlim - f->shcnt - 1);
+src/internal/shgetc.c:		f->shend = f->rend;
+src/internal/shgetc.c:	if (f->rend) f->shcnt += f->rend - f->rpos + 1;
+src/internal/shgetc.c:	if (f->rpos[-1] != c) f->rpos[-1] = c;
+src/internal/vdso.c:		if (!(def->vd_flags & VER_FLG_BASE)
+src/internal/vdso.c:		  && (def->vd_ndx & 0x7fff) == vsym)
+src/internal/vdso.c:		if (def->vd_next == 0)
+src/internal/vdso.c:		def = (Verdef *)((char *)def + def->vd_next);
+src/internal/vdso.c:	Verdaux *aux = (Verdaux *)((char *)def + def->vd_aux);
+src/locale/iconv.c:			if (c-0xa1 <= 0xdf-0xa1) {
+src/locale/iconv.c:				if (c-0xa1 > 0xdf-0xa1) goto ilseq;
+src/locale/iconv.c:			if (d-0x40>=0xff-0x40 || d-0x7f<0xa1-0x7f) goto ilseq;
+src/locale/iconv.c:				if (c-0x87>=0xff-0x87) goto ilseq;
+src/locale/iconv.c:				else if (d-0x81<0xff-0x81) d = d-0x81+52;
+src/locale/uselocale.c:	locale_t old = self->locale;
+src/locale/uselocale.c:	if (new) self->locale = new == LC_GLOBAL_LOCALE ? global : new;
+tools/musl-gcc.specs.sh:libgcc.a%s %:if-exists(libgcc_eh.a%s)
+WHATSNEW:- off-by-one error in scanf %n results
+WHATSNEW:- siglongjmp signal mask clobbering (off-by-one pointer error)
+WHATSNEW:- broken utf-16 conversions
+WHATSNEW:- make musl-gcc wrapper support -lgcc (mainly for self-hosting)
+WHATSNEW:- time_t/struct tm conversion off-by-one-day in december
+WHATSNEW:- gcc 4.8.x generating self-referential (infinite recursion) memcpy/memset
+WHATSNEW:- ecvt/fcvt decimal position off-by-one
+WHATSNEW:- out-of-bounds access in fnmatch with FNM_PATHNAME and certain patterns
+WHATSNEW:- off-by-one error in confstr return value
+WHATSNEW:- btowc mishandling of out-of-range non-EOF inputs
+WHATSNEW:- off-by-one error in getsubopt leaving equals sign in value result
+WHATSNEW:- strftime mishandling of out-of-range struct tm members
+WHATSNEW:- out-of-tree builds
+WHATSNEW:- out-of-bounds dynamic tls allocation due to pointer/index scaling error

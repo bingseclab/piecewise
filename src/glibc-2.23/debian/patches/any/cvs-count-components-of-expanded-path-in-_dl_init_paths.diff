@@ -1,0 +1,35 @@
+From 3ff3dfa5af313a6ea33f3393916f30eece4f0171 Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Thu, 14 Dec 2017 15:05:57 +0100
+Subject: [PATCH] elf: Count components of the expanded path in _dl_init_path
+ [BZ #22607]
+
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -776,8 +776,6 @@
+ 
+   if (llp != NULL && *llp != '\0')
+     {
+-      size_t nllp;
+-      const char *cp = llp;
+       char *llp_tmp;
+ 
+ #ifdef SHARED
+@@ -800,13 +798,10 @@
+ 
+       /* Decompose the LD_LIBRARY_PATH contents.  First determine how many
+ 	 elements it has.  */
+-      nllp = 1;
+-      while (*cp)
+-	{
+-	  if (*cp == ':' || *cp == ';')
+-	    ++nllp;
+-	  ++cp;
+-	}
++      size_t nllp = 1;
++      for (const char *cp = llp_tmp; *cp != '\0'; ++cp)
++	if (*cp == ':' || *cp == ';')
++	  ++nllp;
+ 
+       env_path_list.dirs = (struct r_search_path_elem **)
+ 	malloc ((nllp + 1) * sizeof (struct r_search_path_elem *));

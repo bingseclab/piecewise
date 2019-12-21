@@ -1,0 +1,168 @@
+Author: Florian Weimer <fweimer@redhat.com>
+Description: x86: Fix mis-merge of XSAVE ld.so trampoline selection [BZ #22641]
+
+The change is best viewed with “diff -w”:
+
+> @@ -226,6 +226,7 @@ init_cpu_features (struct cpu_features *cpu_features)
+>          /* Determine if FMA4 is usable.  */
+>          if (HAS_CPU_FEATURE (FMA4))
+>            cpu_features->feature[index_FMA4_Usable] |= bit_FMA4_Usable;
+>+       }
+>
+>       /* For _dl_runtime_resolve, set xsave_state_size to xsave area
+>         size + integer register save size and align it to 64 bytes.  */
+>@@ -292,7 +293,6 @@ init_cpu_features (struct cpu_features *cpu_features)
+>            }
+>        }
+>     }
+>-    }
+>
+> #if !HAS_CPUID
+> no_cpuid:
+
+Without this change, XSAVE support will never be selected unless the CPU
+also supports AVX, which is not what we want.  For example, if AVX is
+disabled, but MPX is supported, the BND registers are not preserved if
+we use FXSAVE instead of XSAVE.
+
+This fixes commit 26d289bb92b6d1125536644f607c73617463477d (x86-64:
+Use fxsave/xsave/xsavec in _dl_runtime_resolve).
+
+---
+
+This is the second patch required to fix LP: #1663280.
+
+This is a clean cherry-pick, except for the changes to NEWS and
+ChangeLog, which I have dropped, as they conflicted heavily.
+  -- Daniel Axtens <daniel.axtens@canonical.com>
+
+---
+
+Origin: backport, https://sourceware.org/git/?p=glibc.git;a=commit;h=fbd72f14904b8a81816528e0cc5bb3315fc70a47
+Bug: https://sourceware.org/bugzilla/show_bug.cgi?id=22641
+Bug-Ubuntu: https://launchpad.net/bugs/1663280
+Last-Update: 2018-10-12
+
+--- a/sysdeps/x86/cpu-features.c
++++ b/sysdeps/x86/cpu-features.c
+@@ -231,69 +231,69 @@
+ 	  /* Determine if FMA4 is usable.  */
+ 	  if (HAS_CPU_FEATURE (FMA4))
+ 	    cpu_features->feature[index_FMA4_Usable] |= bit_FMA4_Usable;
++	}
+ 
+-	  /* For _dl_runtime_resolve, set xsave_state_size to xsave area
+-	     size + integer register save size and align it to 64 bytes.  */
+-	  if (cpu_features->max_cpuid >= 0xd)
+-	    {
+-	      unsigned int eax, ebx, ecx, edx;
++      /* For _dl_runtime_resolve, set xsave_state_size to xsave area
++	 size + integer register save size and align it to 64 bytes.  */
++      if (cpu_features->max_cpuid >= 0xd)
++	{
++	  unsigned int eax, ebx, ecx, edx;
+ 
+-	      __cpuid_count (0xd, 0, eax, ebx, ecx, edx);
+-	      if (ebx != 0)
+-		{
+-		  cpu_features->xsave_state_size
++	  __cpuid_count (0xd, 0, eax, ebx, ecx, edx);
++	  if (ebx != 0)
++	    {
++	      cpu_features->xsave_state_size
+ 		= ALIGN_UP (ebx + STATE_SAVE_OFFSET, 64);
+ 
+-		  __cpuid_count (0xd, 1, eax, ebx, ecx, edx);
++	      __cpuid_count (0xd, 1, eax, ebx, ecx, edx);
+ 
+-		  /* Check if XSAVEC is available.  */
+-		  if ((eax & (1 << 1)) != 0)
+-		    {
+-		      unsigned int xstate_comp_offsets[32];
+-		      unsigned int xstate_comp_sizes[32];
+-		      unsigned int i;
+-
+-		      xstate_comp_offsets[0] = 0;
+-		      xstate_comp_offsets[1] = 160;
+-		      xstate_comp_offsets[2] = 576;
+-		      xstate_comp_sizes[0] = 160;
+-		      xstate_comp_sizes[1] = 256;
++	      /* Check if XSAVEC is available.  */
++	      if ((eax & (1 << 1)) != 0)
++		{
++		  unsigned int xstate_comp_offsets[32];
++		  unsigned int xstate_comp_sizes[32];
++		  unsigned int i;
++
++		  xstate_comp_offsets[0] = 0;
++		  xstate_comp_offsets[1] = 160;
++		  xstate_comp_offsets[2] = 576;
++		  xstate_comp_sizes[0] = 160;
++		  xstate_comp_sizes[1] = 256;
+ 
+-		      for (i = 2; i < 32; i++)
++		  for (i = 2; i < 32; i++)
++		    {
++		      if ((STATE_SAVE_MASK & (1 << i)) != 0)
+ 			{
+-			  if ((STATE_SAVE_MASK & (1 << i)) != 0)
+-			    {
+-			      __cpuid_count (0xd, i, eax, ebx, ecx, edx);
+-			      xstate_comp_sizes[i] = eax;
+-			    }
+-			  else
+-			    {
+-			      ecx = 0;
+-			      xstate_comp_sizes[i] = 0;
+-			    }
+-
+-			  if (i > 2)
+-			    {
+-			      xstate_comp_offsets[i]
+-				= (xstate_comp_offsets[i - 1]
+-				   + xstate_comp_sizes[i -1]);
+-			      if ((ecx & (1 << 1)) != 0)
+-				xstate_comp_offsets[i]
+-			      = ALIGN_UP (xstate_comp_offsets[i], 64);
+-			    }
++			  __cpuid_count (0xd, i, eax, ebx, ecx, edx);
++			  xstate_comp_sizes[i] = eax;
++			}
++		      else
++			{
++			  ecx = 0;
++			  xstate_comp_sizes[i] = 0;
+ 			}
+ 
+-		      /* Use XSAVEC.  */
+-		      unsigned int size
+-			= xstate_comp_offsets[31] + xstate_comp_sizes[31];
+-		      if (size)
++		      if (i > 2)
+ 			{
+-			  cpu_features->xsave_state_size
+-			    = ALIGN_UP (size + STATE_SAVE_OFFSET, 64);
+-			  cpu_features->feature[index_XSAVEC_Usable]
+-			    |= bit_XSAVEC_Usable;
++			  xstate_comp_offsets[i]
++			    = (xstate_comp_offsets[i - 1]
++			       + xstate_comp_sizes[i -1]);
++			  if ((ecx & (1 << 1)) != 0)
++			    xstate_comp_offsets[i]
++			      = ALIGN_UP (xstate_comp_offsets[i], 64);
+ 			}
+ 		    }
++
++		  /* Use XSAVEC.  */
++		  unsigned int size
++		    = xstate_comp_offsets[31] + xstate_comp_sizes[31];
++		  if (size)
++		    {
++		      cpu_features->xsave_state_size
++			= ALIGN_UP (size + STATE_SAVE_OFFSET, 64);
++		      cpu_features->feature[index_XSAVEC_Usable]
++			|= bit_XSAVEC_Usable;
++		    }
+ 		}
+ 	    }
+ 	}

@@ -1,0 +1,620 @@
+Author: H.J. Lu <hjl.tools@gmail.com>
+Description: x86-64: Use fxsave/xsave/xsavec in _dl_runtime_resolve [BZ #21265]
+
+In _dl_runtime_resolve, use fxsave/xsave/xsavec to preserve all vector,
+mask and bound registers.  It simplifies _dl_runtime_resolve and supports
+different calling conventions.  ld.so code size is reduced by more than
+1 KB.  However, use fxsave/xsave/xsavec takes a little bit more cycles
+than saving and restoring vector and bound registers individually.
+    
+Latency for _dl_runtime_resolve to lookup the function, foo, from one
+shared library plus libc.so:
+    
+                             Before    After     Change
+    
+Westmere (SSE)/fxsave         345      866       151%
+IvyBridge (AVX)/xsave         420      643       53%
+Haswell (AVX)/xsave           713      1252      75%
+Skylake (AVX+MPX)/xsavec      559      719       28%
+Skylake (AVX512+MPX)/xsavec   145      272       87%
+Ryzen (AVX)/xsavec            280      553       97%
+    
+This is the worst case where portion of time spent for saving and
+restoring registers is bigger than majority of cases.  With smaller
+_dl_runtime_resolve code size, overall performance impact is negligible.
+    
+On IvyBridge, differences in build and test time of binutils with lazy
+binding GCC and binutils are noises.  On Westmere, differences in
+bootstrap and "makc check" time of GCC 7 with lazy binding GCC and
+binutils are also noises.
+
+---
+
+This is a reasonably straightforward backport.
+
+Conflicts:
+        ChangeLog
+        NEWS
+         - both dropped
+
+        sysdeps/x86_64/dl-trampoline.h
+         - this is because we do not carry commit
+           4401ec26af6b6fd0b2c1f2bd2f54ee41479cf3f9 but is easy to
+           clean up by dropping the relevant ifdef lines.
+
+---
+
+Origin: backport, https://sourceware.org/git/gitweb.cgi?p=glibc.git;h=26d289bb92b6d1125536644f607c73617463477d
+Bug: https://sourceware.org/bugzilla/show_bug.cgi?id=21265
+Bug-Ubuntu: https://launchpad.net/bugs/1663280
+Last-Update: 2018-10-12
+
+--- a/sysdeps/x86/cpu-features-offsets.sym
++++ b/sysdeps/x86/cpu-features-offsets.sym
+@@ -5,3 +5,5 @@
+ #define rtld_global_ro_offsetof(mem) offsetof (struct rtld_global_ro, mem)
+ 
+ RTLD_GLOBAL_RO_DL_X86_CPU_FEATURES_OFFSET rtld_global_ro_offsetof (_dl_x86_cpu_features)
++
++XSAVE_STATE_SIZE_OFFSET	offsetof (struct cpu_features, xsave_state_size)
+--- a/sysdeps/x86/cpu-features.c
++++ b/sysdeps/x86/cpu-features.c
+@@ -18,6 +18,7 @@
+ 
+ #include <cpuid.h>
+ #include <cpu-features.h>
++#include <libc-internal.h>
+ 
+ static inline void
+ get_common_indeces (struct cpu_features *cpu_features,
+@@ -230,6 +231,71 @@
+ 	  /* Determine if FMA4 is usable.  */
+ 	  if (HAS_CPU_FEATURE (FMA4))
+ 	    cpu_features->feature[index_FMA4_Usable] |= bit_FMA4_Usable;
++
++	  /* For _dl_runtime_resolve, set xsave_state_size to xsave area
++	     size + integer register save size and align it to 64 bytes.  */
++	  if (cpu_features->max_cpuid >= 0xd)
++	    {
++	      unsigned int eax, ebx, ecx, edx;
++
++	      __cpuid_count (0xd, 0, eax, ebx, ecx, edx);
++	      if (ebx != 0)
++		{
++		  cpu_features->xsave_state_size
++		= ALIGN_UP (ebx + STATE_SAVE_OFFSET, 64);
++
++		  __cpuid_count (0xd, 1, eax, ebx, ecx, edx);
++
++		  /* Check if XSAVEC is available.  */
++		  if ((eax & (1 << 1)) != 0)
++		    {
++		      unsigned int xstate_comp_offsets[32];
++		      unsigned int xstate_comp_sizes[32];
++		      unsigned int i;
++
++		      xstate_comp_offsets[0] = 0;
++		      xstate_comp_offsets[1] = 160;
++		      xstate_comp_offsets[2] = 576;
++		      xstate_comp_sizes[0] = 160;
++		      xstate_comp_sizes[1] = 256;
++
++		      for (i = 2; i < 32; i++)
++			{
++			  if ((STATE_SAVE_MASK & (1 << i)) != 0)
++			    {
++			      __cpuid_count (0xd, i, eax, ebx, ecx, edx);
++			      xstate_comp_sizes[i] = eax;
++			    }
++			  else
++			    {
++			      ecx = 0;
++			      xstate_comp_sizes[i] = 0;
++			    }
++
++			  if (i > 2)
++			    {
++			      xstate_comp_offsets[i]
++				= (xstate_comp_offsets[i - 1]
++				   + xstate_comp_sizes[i -1]);
++			      if ((ecx & (1 << 1)) != 0)
++				xstate_comp_offsets[i]
++			      = ALIGN_UP (xstate_comp_offsets[i], 64);
++			    }
++			}
++
++		      /* Use XSAVEC.  */
++		      unsigned int size
++			= xstate_comp_offsets[31] + xstate_comp_sizes[31];
++		      if (size)
++			{
++			  cpu_features->xsave_state_size
++			    = ALIGN_UP (size + STATE_SAVE_OFFSET, 64);
++			  cpu_features->feature[index_XSAVEC_Usable]
++			    |= bit_XSAVEC_Usable;
++			}
++		    }
++		}
++	    }
+ 	}
+     }
+ 
+--- a/sysdeps/x86/cpu-features.h
++++ b/sysdeps/x86/cpu-features.h
+@@ -35,6 +35,7 @@
+ #define bit_I686			(1 << 15)
+ #define bit_Prefer_MAP_32BIT_EXEC	(1 << 16)
+ #define bit_Prefer_No_VZEROUPPER	(1 << 17)
++#define bit_XSAVEC_Usable		(1 << 18)
+ 
+ /* CPUID Feature flags.  */
+ 
+@@ -71,10 +72,20 @@
+ /* The current maximum size of the feature integer bit array.  */
+ #define FEATURE_INDEX_MAX 1
+ 
++/* Offset for fxsave/xsave area used by _dl_runtime_resolve.  Also need
++   space to preserve RCX, RDX, RSI, RDI, R8, R9 and RAX.  It must be
++   aligned to 16 bytes for fxsave and 64 bytes for xsave.  */
++#define STATE_SAVE_OFFSET (8 * 7 + 8)
++
++/* Save SSE, AVX, AVX512, mask and bound registers.  */
++#define STATE_SAVE_MASK \
++  ((1 << 1) | (1 << 2) | (1 << 3) | (1 << 5) | (1 << 6) | (1 << 7))
++
+ #ifdef	__ASSEMBLER__
+ 
+ # include <ifunc-defines.h>
+ # include <rtld-global-offsets.h>
++# include <cpu-features-offsets.h>
+ 
+ # define index_CX8	COMMON_CPUID_INDEX_1*CPUID_SIZE+CPUID_EDX_OFFSET
+ # define index_CMOV	COMMON_CPUID_INDEX_1*CPUID_SIZE+CPUID_EDX_OFFSET
+@@ -186,6 +197,12 @@
+   } cpuid[COMMON_CPUID_INDEX_MAX];
+   unsigned int family;
+   unsigned int model;
++  /* The type must be unsigned long int so that we use
++
++	sub xsave_state_size_offset(%rip) %RSP_LP
++
++     in _dl_runtime_resolve.  */
++  unsigned long int xsave_state_size;
+   unsigned int feature[FEATURE_INDEX_MAX];
+ };
+ 
+@@ -256,6 +273,7 @@
+ # define index_I686			FEATURE_INDEX_1
+ # define index_Prefer_MAP_32BIT_EXEC	FEATURE_INDEX_1
+ # define index_Prefer_No_VZEROUPPER     FEATURE_INDEX_1
++# define index_XSAVEC_Usable		FEATURE_INDEX_1
+ 
+ #endif	/* !__ASSEMBLER__ */
+ 
+--- a/sysdeps/x86_64/dl-machine.h
++++ b/sysdeps/x86_64/dl-machine.h
+@@ -66,9 +66,9 @@
+ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+ {
+   Elf64_Addr *got;
+-  extern void _dl_runtime_resolve_sse (ElfW(Word)) attribute_hidden;
+-  extern void _dl_runtime_resolve_avx (ElfW(Word)) attribute_hidden;
+-  extern void _dl_runtime_resolve_avx512 (ElfW(Word)) attribute_hidden;
++  extern void _dl_runtime_resolve_fxsave (ElfW(Word)) attribute_hidden;
++  extern void _dl_runtime_resolve_xsave (ElfW(Word)) attribute_hidden;
++  extern void _dl_runtime_resolve_xsavec (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_profile_sse (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_profile_avx (ElfW(Word)) attribute_hidden;
+   extern void _dl_runtime_profile_avx512 (ElfW(Word)) attribute_hidden;
+@@ -117,12 +117,14 @@
+ 	  /* This function will get called to fix up the GOT entry
+ 	     indicated by the offset on the stack, and then jump to
+ 	     the resolved address.  */
+-	  if (HAS_ARCH_FEATURE (AVX512F_Usable))
+-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_avx512;
+-	  else if (HAS_ARCH_FEATURE (AVX_Usable))
+-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_avx;
++	  if (GLRO(dl_x86_cpu_features).xsave_state_size != 0)
++	    *(ElfW(Addr) *) (got + 2)
++	      = (HAS_ARCH_FEATURE (XSAVEC_Usable)
++		 ? (ElfW(Addr)) &_dl_runtime_resolve_xsavec
++		 : (ElfW(Addr)) &_dl_runtime_resolve_xsave);
+ 	  else
+-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_sse;
++	    *(ElfW(Addr) *) (got + 2)
++	      = (ElfW(Addr)) &_dl_runtime_resolve_fxsave;
+ 	}
+     }
+ 
+--- a/sysdeps/x86_64/dl-trampoline.S
++++ b/sysdeps/x86_64/dl-trampoline.S
+@@ -18,6 +18,7 @@
+ 
+ #include <config.h>
+ #include <sysdep.h>
++#include <cpu-features.h>
+ #include <link-defines.h>
+ 
+ #ifndef DL_STACK_ALIGNMENT
+@@ -33,41 +34,24 @@
+ # define DL_STACK_ALIGNMENT 8
+ #endif
+ 
+-#ifndef DL_RUNTIME_UNALIGNED_VEC_SIZE
+-/* The maximum size in bytes of unaligned vector load and store in the
+-   dynamic linker.  Since SSE optimized memory/string functions with
+-   aligned SSE register load and store are used in the dynamic linker,
+-   we must set this to 8 so that _dl_runtime_resolve_sse will align the
+-   stack before calling _dl_fixup.  */
+-# define DL_RUNTIME_UNALIGNED_VEC_SIZE 8
+-#endif
+-
+-/* True if _dl_runtime_resolve should align stack to VEC_SIZE bytes.  */
++/* True if _dl_runtime_resolve should align stack for STATE_SAVE or align
++   stack to 16 bytes before calling _dl_fixup.  */
+ #define DL_RUNTIME_RESOLVE_REALIGN_STACK \
+-  (VEC_SIZE > DL_STACK_ALIGNMENT \
+-   && VEC_SIZE > DL_RUNTIME_UNALIGNED_VEC_SIZE)
+-
+-/* Align vector register save area to 16 bytes.  */
+-#define REGISTER_SAVE_VEC_OFF	0
++  (STATE_SAVE_ALIGNMENT > DL_STACK_ALIGNMENT \
++   || 16 > DL_STACK_ALIGNMENT)
+ 
+ /* Area on stack to save and restore registers used for parameter
+    passing when calling _dl_fixup.  */
+ #ifdef __ILP32__
+-# define REGISTER_SAVE_RAX	(REGISTER_SAVE_VEC_OFF + VEC_SIZE * 8)
+ # define PRESERVE_BND_REGS_PREFIX
+ #else
+-/* Align bound register save area to 16 bytes.  */
+-# define REGISTER_SAVE_BND0	(REGISTER_SAVE_VEC_OFF + VEC_SIZE * 8)
+-# define REGISTER_SAVE_BND1	(REGISTER_SAVE_BND0 + 16)
+-# define REGISTER_SAVE_BND2	(REGISTER_SAVE_BND1 + 16)
+-# define REGISTER_SAVE_BND3	(REGISTER_SAVE_BND2 + 16)
+-# define REGISTER_SAVE_RAX	(REGISTER_SAVE_BND3 + 16)
+ # ifdef HAVE_MPX_SUPPORT
+ #  define PRESERVE_BND_REGS_PREFIX bnd
+ # else
+ #  define PRESERVE_BND_REGS_PREFIX .byte 0xf2
+ # endif
+ #endif
++#define REGISTER_SAVE_RAX	0
+ #define REGISTER_SAVE_RCX	(REGISTER_SAVE_RAX + 8)
+ #define REGISTER_SAVE_RDX	(REGISTER_SAVE_RCX + 8)
+ #define REGISTER_SAVE_RSI	(REGISTER_SAVE_RDX + 8)
+@@ -77,59 +61,58 @@
+ 
+ #define RESTORE_AVX
+ 
+-#ifdef HAVE_AVX512_ASM_SUPPORT
+-# define VEC_SIZE		64
+-# define VMOVA			vmovdqa64
+-# if DL_RUNTIME_RESOLVE_REALIGN_STACK || VEC_SIZE <= DL_STACK_ALIGNMENT
+-#  define VMOV			vmovdqa64
+-# else
+-#  define VMOV			vmovdqu64
+-# endif
+-# define VEC(i)			zmm##i
+-# define _dl_runtime_resolve	_dl_runtime_resolve_avx512
+-# define _dl_runtime_profile	_dl_runtime_profile_avx512
+-# include "dl-trampoline.h"
+-# undef _dl_runtime_resolve
+-# undef _dl_runtime_profile
+-# undef VEC
+-# undef VMOV
+-# undef VMOVA
+-# undef VEC_SIZE
+-#else
+-strong_alias (_dl_runtime_resolve_avx, _dl_runtime_resolve_avx512)
+-	.hidden _dl_runtime_resolve_avx512
+-strong_alias (_dl_runtime_profile_avx, _dl_runtime_profile_avx512)
+-	.hidden _dl_runtime_profile_avx512
+-#endif
++#define VEC_SIZE		64
++#define VMOVA			vmovdqa64
++#define VEC(i)			zmm##i
++#define _dl_runtime_profile	_dl_runtime_profile_avx512
++#include "dl-trampoline.h"
++#undef _dl_runtime_profile
++#undef VEC
++#undef VMOVA
++#undef VEC_SIZE
+ 
+ #define VEC_SIZE		32
+ #define VMOVA			vmovdqa
+-#if DL_RUNTIME_RESOLVE_REALIGN_STACK || VEC_SIZE <= DL_STACK_ALIGNMENT
+-# define VMOV			vmovdqa
+-#else
+-# define VMOV			vmovdqu
+-#endif
+ #define VEC(i)			ymm##i
+-#define _dl_runtime_resolve	_dl_runtime_resolve_avx
+ #define _dl_runtime_profile	_dl_runtime_profile_avx
+ #include "dl-trampoline.h"
+-#undef _dl_runtime_resolve
+ #undef _dl_runtime_profile
+ #undef VEC
+-#undef VMOV
+ #undef VMOVA
+ #undef VEC_SIZE
+ 
+ /* movaps/movups is 1-byte shorter.  */
+ #define VEC_SIZE		16
+ #define VMOVA			movaps
+-#if DL_RUNTIME_RESOLVE_REALIGN_STACK || VEC_SIZE <= DL_STACK_ALIGNMENT
+-# define VMOV			movaps
+-#else
+-# define VMOV			movups
+-#endif
+ #define VEC(i)			xmm##i
+-#define _dl_runtime_resolve	_dl_runtime_resolve_sse
+ #define _dl_runtime_profile	_dl_runtime_profile_sse
+ #undef RESTORE_AVX
+ #include "dl-trampoline.h"
++#undef _dl_runtime_profile
++#undef VEC
++#undef VMOVA
++#undef VEC_SIZE
++
++#define USE_FXSAVE
++#define STATE_SAVE_ALIGNMENT	16
++#define _dl_runtime_resolve	_dl_runtime_resolve_fxsave
++#include "dl-trampoline.h"
++#undef _dl_runtime_resolve
++#undef USE_FXSAVE
++#undef STATE_SAVE_ALIGNMENT
++
++#define USE_XSAVE
++#define STATE_SAVE_ALIGNMENT	64
++#define _dl_runtime_resolve	_dl_runtime_resolve_xsave
++#include "dl-trampoline.h"
++#undef _dl_runtime_resolve
++#undef USE_XSAVE
++#undef STATE_SAVE_ALIGNMENT
++
++#define USE_XSAVEC
++#define STATE_SAVE_ALIGNMENT	64
++#define _dl_runtime_resolve	_dl_runtime_resolve_xsavec
++#include "dl-trampoline.h"
++#undef _dl_runtime_resolve
++#undef USE_XSAVEC
++#undef STATE_SAVE_ALIGNMENT
+--- a/sysdeps/x86_64/dl-trampoline.h
++++ b/sysdeps/x86_64/dl-trampoline.h
+@@ -16,40 +16,47 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */
+ 
+-#undef REGISTER_SAVE_AREA_RAW
+-#ifdef __ILP32__
+-/* X32 saves RCX, RDX, RSI, RDI, R8 and R9 plus RAX as well as VEC0 to
+-   VEC7.  */
+-# define REGISTER_SAVE_AREA_RAW	(8 * 7 + VEC_SIZE * 8)
+-#else
+-/* X86-64 saves RCX, RDX, RSI, RDI, R8 and R9 plus RAX as well as
+-   BND0, BND1, BND2, BND3 and VEC0 to VEC7. */
+-# define REGISTER_SAVE_AREA_RAW	(8 * 7 + 16 * 4 + VEC_SIZE * 8)
+-#endif
++	.text
++#ifdef _dl_runtime_resolve
+ 
+-#undef REGISTER_SAVE_AREA
+-#undef LOCAL_STORAGE_AREA
+-#undef BASE
+-#if DL_RUNTIME_RESOLVE_REALIGN_STACK
+-# define REGISTER_SAVE_AREA	(REGISTER_SAVE_AREA_RAW + 8)
+-/* Local stack area before jumping to function address: RBX.  */
+-# define LOCAL_STORAGE_AREA	8
+-# define BASE			rbx
+-# if (REGISTER_SAVE_AREA % VEC_SIZE) != 0
+-#  error REGISTER_SAVE_AREA must be multples of VEC_SIZE
++# undef REGISTER_SAVE_AREA
++# undef LOCAL_STORAGE_AREA
++# undef BASE
++
++# if (STATE_SAVE_ALIGNMENT % 16) != 0
++#  error STATE_SAVE_ALIGNMENT must be multples of 16
+ # endif
+-#else
+-# define REGISTER_SAVE_AREA	REGISTER_SAVE_AREA_RAW
++
++# if (STATE_SAVE_OFFSET % STATE_SAVE_ALIGNMENT) != 0
++#  error STATE_SAVE_OFFSET must be multples of STATE_SAVE_ALIGNMENT
++# endif
++
++# if DL_RUNTIME_RESOLVE_REALIGN_STACK
++/* Local stack area before jumping to function address: RBX.  */
++#  define LOCAL_STORAGE_AREA	8
++#  define BASE			rbx
++#  ifdef USE_FXSAVE
++/* Use fxsave to save XMM registers.  */
++#   define REGISTER_SAVE_AREA	(512 + STATE_SAVE_OFFSET)
++#   if (REGISTER_SAVE_AREA % 16) != 0
++#    error REGISTER_SAVE_AREA must be multples of 16
++#   endif
++#  endif
++# else
++#  ifndef USE_FXSAVE
++#   error USE_FXSAVE must be defined
++#  endif
++/* Use fxsave to save XMM registers.  */
++#  define REGISTER_SAVE_AREA	(512 + STATE_SAVE_OFFSET + 8)
+ /* Local stack area before jumping to function address:  All saved
+    registers.  */
+-# define LOCAL_STORAGE_AREA	REGISTER_SAVE_AREA
+-# define BASE			rsp
+-# if (REGISTER_SAVE_AREA % 16) != 8
+-#  error REGISTER_SAVE_AREA must be odd multples of 8
++#  define LOCAL_STORAGE_AREA	REGISTER_SAVE_AREA
++#  define BASE			rsp
++#  if (REGISTER_SAVE_AREA % 16) != 8
++#   error REGISTER_SAVE_AREA must be odd multples of 8
++#  endif
+ # endif
+-#endif
+ 
+-	.text
+ 	.globl _dl_runtime_resolve
+ 	.hidden _dl_runtime_resolve
+ 	.type _dl_runtime_resolve, @function
+@@ -57,19 +64,28 @@
+ 	cfi_startproc
+ _dl_runtime_resolve:
+ 	cfi_adjust_cfa_offset(16) # Incorporate PLT
+-#if DL_RUNTIME_RESOLVE_REALIGN_STACK
+-# if LOCAL_STORAGE_AREA != 8
+-#  error LOCAL_STORAGE_AREA must be 8
+-# endif
++# if DL_RUNTIME_RESOLVE_REALIGN_STACK
++#  if LOCAL_STORAGE_AREA != 8
++#   error LOCAL_STORAGE_AREA must be 8
++#  endif
+ 	pushq %rbx			# push subtracts stack by 8.
+ 	cfi_adjust_cfa_offset(8)
+ 	cfi_rel_offset(%rbx, 0)
+ 	mov %RSP_LP, %RBX_LP
+ 	cfi_def_cfa_register(%rbx)
+-	and $-VEC_SIZE, %RSP_LP
+-#endif
++	and $-STATE_SAVE_ALIGNMENT, %RSP_LP
++# endif
++# ifdef REGISTER_SAVE_AREA
+ 	sub $REGISTER_SAVE_AREA, %RSP_LP
+ 	cfi_adjust_cfa_offset(REGISTER_SAVE_AREA)
++# else
++	# Allocate stack space of the required size to save the state.
++#  if IS_IN (rtld)
++	sub _rtld_local_ro+RTLD_GLOBAL_RO_DL_X86_CPU_FEATURES_OFFSET+XSAVE_STATE_SIZE_OFFSET(%rip), %RSP_LP
++#  else
++	sub _dl_x86_cpu_features+XSAVE_STATE_SIZE_OFFSET(%rip), %RSP_LP
++#  endif
++# endif
+ 	# Preserve registers otherwise clobbered.
+ 	movq %rax, REGISTER_SAVE_RAX(%rsp)
+ 	movq %rcx, REGISTER_SAVE_RCX(%rsp)
+@@ -78,59 +94,48 @@
+ 	movq %rdi, REGISTER_SAVE_RDI(%rsp)
+ 	movq %r8, REGISTER_SAVE_R8(%rsp)
+ 	movq %r9, REGISTER_SAVE_R9(%rsp)
+-	VMOV %VEC(0), (REGISTER_SAVE_VEC_OFF)(%rsp)
+-	VMOV %VEC(1), (REGISTER_SAVE_VEC_OFF + VEC_SIZE)(%rsp)
+-	VMOV %VEC(2), (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 2)(%rsp)
+-	VMOV %VEC(3), (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 3)(%rsp)
+-	VMOV %VEC(4), (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 4)(%rsp)
+-	VMOV %VEC(5), (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 5)(%rsp)
+-	VMOV %VEC(6), (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 6)(%rsp)
+-	VMOV %VEC(7), (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 7)(%rsp)
+-#ifndef __ILP32__
+-	# We also have to preserve bound registers.  These are nops if
+-	# Intel MPX isn't available or disabled.
+-# ifdef HAVE_MPX_SUPPORT
+-	bndmov %bnd0, REGISTER_SAVE_BND0(%rsp)
+-	bndmov %bnd1, REGISTER_SAVE_BND1(%rsp)
+-	bndmov %bnd2, REGISTER_SAVE_BND2(%rsp)
+-	bndmov %bnd3, REGISTER_SAVE_BND3(%rsp)
++# ifdef USE_FXSAVE
++	fxsave STATE_SAVE_OFFSET(%rsp)
+ # else
+-#  if REGISTER_SAVE_BND0 == 0
+-	.byte 0x66,0x0f,0x1b,0x04,0x24
++	movl $STATE_SAVE_MASK, %eax
++	xorl %edx, %edx
++	# Clear the XSAVE Header.
++#  ifdef USE_XSAVE
++	movq %rdx, (STATE_SAVE_OFFSET + 512)(%rsp)
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8)(%rsp)
++#  endif
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8 * 2)(%rsp)
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8 * 3)(%rsp)
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8 * 4)(%rsp)
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8 * 5)(%rsp)
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8 * 6)(%rsp)
++	movq %rdx, (STATE_SAVE_OFFSET + 512 + 8 * 7)(%rsp)
++#  ifdef USE_XSAVE
++	xsave STATE_SAVE_OFFSET(%rsp)
+ #  else
+-	.byte 0x66,0x0f,0x1b,0x44,0x24,REGISTER_SAVE_BND0
++	# Since glibc 2.23 requires only binutils 2.22 or later, xsavec
++	# may not be supported.  Use .byte directive instead.
++#   if STATE_SAVE_OFFSET != 0x40
++#    error STATE_SAVE_OFFSET != 0x40
++#   endif
++	# xsavec STATE_SAVE_OFFSET(%rsp)
++	.byte 0x0f, 0xc7, 0x64, 0x24, 0x40
+ #  endif
+-	.byte 0x66,0x0f,0x1b,0x4c,0x24,REGISTER_SAVE_BND1
+-	.byte 0x66,0x0f,0x1b,0x54,0x24,REGISTER_SAVE_BND2
+-	.byte 0x66,0x0f,0x1b,0x5c,0x24,REGISTER_SAVE_BND3
+ # endif
+-#endif
+ 	# Copy args pushed by PLT in register.
+ 	# %rdi: link_map, %rsi: reloc_index
+ 	mov (LOCAL_STORAGE_AREA + 8)(%BASE), %RSI_LP
+ 	mov LOCAL_STORAGE_AREA(%BASE), %RDI_LP
+ 	call _dl_fixup		# Call resolver.
+ 	mov %RAX_LP, %R11_LP	# Save return value
+-#ifndef __ILP32__
+-	# Restore bound registers.  These are nops if Intel MPX isn't
+-	# avaiable or disabled.
+-# ifdef HAVE_MPX_SUPPORT
+-	bndmov REGISTER_SAVE_BND3(%rsp), %bnd3
+-	bndmov REGISTER_SAVE_BND2(%rsp), %bnd2
+-	bndmov REGISTER_SAVE_BND1(%rsp), %bnd1
+-	bndmov REGISTER_SAVE_BND0(%rsp), %bnd0
++	# Get register content back.
++# ifdef USE_FXSAVE
++	fxrstor STATE_SAVE_OFFSET(%rsp)
+ # else
+-	.byte 0x66,0x0f,0x1a,0x5c,0x24,REGISTER_SAVE_BND3
+-	.byte 0x66,0x0f,0x1a,0x54,0x24,REGISTER_SAVE_BND2
+-	.byte 0x66,0x0f,0x1a,0x4c,0x24,REGISTER_SAVE_BND1
+-#  if REGISTER_SAVE_BND0 == 0
+-	.byte 0x66,0x0f,0x1a,0x04,0x24
+-#  else
+-	.byte 0x66,0x0f,0x1a,0x44,0x24,REGISTER_SAVE_BND0
+-#  endif
++	movl $STATE_SAVE_MASK, %eax
++	xorl %edx, %edx
++	xrstor STATE_SAVE_OFFSET(%rsp)
+ # endif
+-#endif
+-	# Get register content back.
+ 	movq REGISTER_SAVE_R9(%rsp), %r9
+ 	movq REGISTER_SAVE_R8(%rsp), %r8
+ 	movq REGISTER_SAVE_RDI(%rsp), %rdi
+@@ -138,20 +143,12 @@
+ 	movq REGISTER_SAVE_RDX(%rsp), %rdx
+ 	movq REGISTER_SAVE_RCX(%rsp), %rcx
+ 	movq REGISTER_SAVE_RAX(%rsp), %rax
+-	VMOV (REGISTER_SAVE_VEC_OFF)(%rsp), %VEC(0)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE)(%rsp), %VEC(1)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 2)(%rsp), %VEC(2)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 3)(%rsp), %VEC(3)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 4)(%rsp), %VEC(4)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 5)(%rsp), %VEC(5)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 6)(%rsp), %VEC(6)
+-	VMOV (REGISTER_SAVE_VEC_OFF + VEC_SIZE * 7)(%rsp), %VEC(7)
+-#if DL_RUNTIME_RESOLVE_REALIGN_STACK
++# if DL_RUNTIME_RESOLVE_REALIGN_STACK
+ 	mov %RBX_LP, %RSP_LP
+ 	cfi_def_cfa_register(%rsp)
+ 	movq (%rsp), %rbx
+ 	cfi_restore(%rbx)
+-#endif
++# endif
+ 	# Adjust stack(PLT did 2 pushes)
+ 	add $(LOCAL_STORAGE_AREA + 16), %RSP_LP
+ 	cfi_adjust_cfa_offset(-(LOCAL_STORAGE_AREA + 16))
+@@ -160,9 +157,10 @@
+ 	jmp *%r11		# Jump to function address.
+ 	cfi_endproc
+ 	.size _dl_runtime_resolve, .-_dl_runtime_resolve
++#endif
+ 
+ 
+-#ifndef PROF
++#if !defined PROF && defined _dl_runtime_profile
+ # if (LR_VECTOR_OFFSET % VEC_SIZE) != 0
+ #  error LR_VECTOR_OFFSET must be multples of VEC_SIZE
+ # endif
