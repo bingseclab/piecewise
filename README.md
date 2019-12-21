@@ -20,7 +20,7 @@ Note that pta (points-to analysis) mode has been disabled due to license compati
 ### Build **piecewise** compiler
 **piecewise** compiler is based on [LLVM and Clang v4.0.0](http://releases.llvm.org/download.html#4.0.0).
 
-1. Verify that your system meets all requirements for [LLVM](http://releases.llvm.org/4.0.0/docs/GettingStarted.html#requirements), and [building LLVM with CMake](http://releases.llvm.org/4.0.0/docs/CMake.html). We have tested these instructions on Ubuntu 18.04.3 LTS with GCC 7.4.0 and CMake 3.9.1 obtained through APT.
+1. Verify that your system meets all requirements for [LLVM](http://releases.llvm.org/4.0.0/docs/GettingStarted.html#requirements), and [building LLVM with CMake](http://releases.llvm.org/4.0.0/docs/CMake.html). We have tested these instructions on Ubuntu Xenial with GCC 5.0.0 and CMake 3.9.1 obtained through APT.
 
 2. Follow [instructions](http://releases.llvm.org/4.0.0/docs/GoldPlugin.html) to download and build gold with plugin support. Use `gold` linker to build **piecewise** compiler and `musl-libc` loader. Switch to BFD loader to build `glibc` with **piecewise** BFD loader
 
